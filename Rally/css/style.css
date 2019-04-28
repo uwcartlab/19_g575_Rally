@@ -1,0 +1,40 @@
+#map {
+    height: 950px;
+    width: 100%;
+    display: inline-block;
+}
+
+#panel {
+    width: 16%;
+    padding: 20px;
+    display: inline-block;
+    vertical-align: top;
+}
+#border {
+    border-width: 4px;
+}
+#forward {
+    float: right;
+}
+
+#reverse {
+    float: left;
+}
+.legend-control-container {
+    width: 140px;
+    height: 120px;
+    background-color: rgba(255,255,255,0.8);
+    padding: 10px;
+    line-height: 45px;
+    text-align: center;
+    border: solid gray 1px;
+}
+
+.temporal-legend {
+	width: 160px;
+    height: 60px;
+    padding: 10px;
+    line-height: 100px;
+    text-align: center;
+    border: solid gray 1px;
+}
