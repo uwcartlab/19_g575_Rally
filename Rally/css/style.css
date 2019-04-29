@@ -1,7 +1,24 @@
 #map {
-    height: 950px;
-    width: 100%;
+  position: static;
+    height: 860px;
+    width: 95%;
+    left: 45px;
+    top: 50px;
     display: inline-block;
+    font-family: 'wrcroman';
+}
+body {
+    background-color: black;
+}
+@font-face {
+    font-family: 'wrcroman';
+    src: url('WRCROMAN.ttf');
+}
+div.image {
+    height: 49px;
+    width: 105px;
+    content:url('wrclogo.png');
+    position: absolute;
 }
 
 #panel {
@@ -13,21 +30,15 @@
 #border {
     border-width: 4px;
 }
-#forward {
-    float: right;
-}
-
-#reverse {
-    float: left;
-}
 .legend-control-container {
     width: 140px;
     height: 120px;
-    background-color: rgba(255,255,255,0.8);
+    background-color: rgba(255,255,255,0.6);
     padding: 10px;
     line-height: 45px;
     text-align: center;
-    border: solid gray 1px;
+    border: solid black 3px;
+    font-family: 'wrcroman';
 }
 
 .temporal-legend {
@@ -36,5 +47,5 @@
     padding: 10px;
     line-height: 100px;
     text-align: center;
-    border: solid gray 1px;
+    border: solid black 1px;
 }
