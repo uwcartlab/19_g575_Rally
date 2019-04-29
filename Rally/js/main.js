@@ -34,6 +34,7 @@ function pointToLayer(feature, latlng, attributes){
     //create circle marker layer
     var layer = L.circleMarker(latlng, options);
     // build popup content string
+    var panelContent = "Hello World";
     var popupContent = "<b>Event:</b> " + feature.properties.Track_Name + "";
     // var name = attribute["Track_Name"];
     popupContent += "<br><b>Years active: </b>" + feature.properties[attribute] + " years</br>";
@@ -46,12 +47,14 @@ function pointToLayer(feature, latlng, attributes){
         },
         mouseout: function(){
             this.closePopup();
+        },
+        click: function(){
+            $("#panel").html(panelContent);
         }
     });
     //return the circle marker to the L.geoJson pointToLayer option
     return layer;
 };
-
 //Add circle markers for point features to the map
 function createPropSymbols(data, map, attributes){
     //create a Leaflet GeoJSON layer and add it to the map

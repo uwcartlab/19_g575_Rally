@@ -20,15 +20,15 @@ div.image {
     content:url('wrclogo.png');
     position: absolute;
 }
-
-#panel {
-    width: 16%;
-    padding: 20px;
-    display: inline-block;
-    vertical-align: top;
-}
 #border {
     border-width: 4px;
+}
+#panel {
+    width: 97%;
+    padding: 20px;
+    position: absolute;
+    top: 950px;
+    background-color: rgba(255,255,255,1);
 }
 .legend-control-container {
     width: 140px;
