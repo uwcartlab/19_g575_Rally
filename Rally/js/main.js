@@ -24,7 +24,7 @@ function pointToLayer(feature, latlng, attributes){
         color: "#000",
         weight: 2,
         opacity: 1,
-        fillOpacity: .9
+        fillOpacity: .5
     };
 
     //For each feature, determine its value for the selected attribute
