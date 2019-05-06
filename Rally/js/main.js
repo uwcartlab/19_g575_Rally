@@ -3,19 +3,27 @@ function createMap(){
 //defines the starting point and zoom level of the map
     var map = L.map('map', {
         center: [20, 20],
-        zoom: 2.5
-
-
+        zoom: 1,
+        zoomControl: false
     });
+    var baseMaps = {
+        baseMap: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        }),
+        satellite:  L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
+            maxZoom: 20,
+            subdomains:['mt0','mt1','mt2','mt3']
+        })
+    };
 //imports the tile layer from the defined source
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
     }).addTo(map);
 
-    getData(map);
+    getData(map, baseMaps);
 };
 // // //function to convert markers to circle markers
-function pointToLayer(feature, latlng, attributes){
+function pointToLayer(feature, latlng, attributes, map, baseMaps){
     //Determine which attribute to visualize with proportional symbols
     var attribute = attributes[2];
     //create marker options
@@ -37,6 +45,7 @@ function pointToLayer(feature, latlng, attributes){
     var panelContent = "Hello World";
     var popupContent = "<b>Event:</b> " + feature.properties.Track_Name + "";
     // var name = attribute["Track_Name"];
+    
     popupContent += "<br><b>Years active: </b>" + feature.properties[attribute] + " years</br>";
     layer.bindPopup(popupContent, {
         offset: new L.Point(0,-options.radius)
@@ -48,19 +57,24 @@ function pointToLayer(feature, latlng, attributes){
         mouseout: function(){
             this.closePopup();
         },
-        click: function(){
-            $("#panel").html(panelContent);
+        click: function(feature){
+            $("#panel").html(panelContent),
+            map.flyTo(latlng, 12);
+            map.on('moveend', function(){
+                baseMaps.satellite.addTo(map)
+                });
+            
         }
     });
     //return the circle marker to the L.geoJson pointToLayer option
     return layer;
 };
 //Add circle markers for point features to the map
-function createPropSymbols(data, map, attributes){
+function createPropSymbols(data, map, attributes, baseMaps){
     //create a Leaflet GeoJSON layer and add it to the map
     L.geoJson(data, {
         pointToLayer: function(feature, latlng){
-            return pointToLayer(feature, latlng, attributes);
+            return pointToLayer(feature, latlng, attributes, map, baseMaps);
         }
     }).addTo(map);
 };
@@ -72,6 +86,93 @@ function calcPropRadius(attValue) {
 
     return radius;
 };
+
+//AddResetView
+function resetView(map, baseMaps){
+    // custom zoom bar control that includes a Zoom Home function
+    L.Control.zoomHome = L.Control.extend({
+        options: {
+            position: 'topright',
+            zoomInText: '+',
+            zoomInTitle: 'Zoom in',
+            zoomOutText: '-',
+            zoomOutTitle: 'Zoom out',
+            zoomHomeText: '<i class="fa fa-home" style="line-height:1.65;"></i>',
+            zoomHomeTitle: 'Zoom home'
+        },
+
+        onAdd: function (map) {
+            var controlName = 'gin-control-zoom',
+                container = L.DomUtil.create('div', controlName + ' leaflet-bar'),
+                options = this.options;
+
+            this._zoomInButton = this._createButton(options.zoomInText, options.zoomInTitle,
+            controlName + '-in', container, this._zoomIn);
+            this._zoomHomeButton = this._createButton(options.zoomHomeText, options.zoomHomeTitle,
+            controlName + '-home', container, this._zoomHome);
+            this._zoomOutButton = this._createButton(options.zoomOutText, options.zoomOutTitle,
+            controlName + '-out', container, this._zoomOut),
+            this._updateDisabled();
+            map.on('zoomend zoomlevelschange', this._updateDisabled, this);
+
+            return container;
+        },
+
+        onRemove: function (map) {
+            map.off('zoomend zoomlevelschange', this._updateDisabled, this);
+        },
+
+        _zoomIn: function (e) {
+            this._map.zoomIn(e.shiftKey ? 3 : 1);
+        },
+
+        _zoomOut: function (e) {
+            this._map.zoomOut(e.shiftKey ? 3 : 1);
+        },
+
+        _zoomHome: function (e) {
+            map.flyTo([20, 20], 1.5);
+            map.on('moveend', function(){
+                map.removeLayer(baseMaps.satellite)
+                console.log(baseMaps.satellite)
+                baseMaps.satellite.bringToFront()
+                });
+        },
+
+        _createButton: function (html, title, className, container, fn) {
+            var link = L.DomUtil.create('a', className, container);
+            link.innerHTML = html;
+            link.href = '#';
+            link.title = title;
+
+            L.DomEvent.on(link, 'mousedown dblclick', L.DomEvent.stopPropagation)
+                .on(link, 'click', L.DomEvent.stop)
+                .on(link, 'click', fn, this)
+                .on(link, 'click', this._refocusOnMap, this);
+
+            return link;
+        },
+
+        _updateDisabled: function () {
+            var map = this._map,
+                className = 'leaflet-disabled';
+
+            L.DomUtil.removeClass(this._zoomInButton, className);
+            L.DomUtil.removeClass(this._zoomOutButton, className);
+
+            if (map._zoom === map.getMinZoom()) {
+                L.DomUtil.addClass(this._zoomOutButton, className);
+            }
+            if (map._zoom === map.getMaxZoom()) {
+                L.DomUtil.addClass(this._zoomInButton, className);
+            }
+        }
+    });
+    // add the new control to the map
+    var zoomHome = new L.Control.zoomHome();
+    zoomHome.addTo(map);
+}
+
 //Create map legend
 function createLegend(map, attributes){
     var LegendControl = L.Control.extend({
@@ -191,20 +292,23 @@ function processData(data){
     };
     return attributes;
 };
+
+
 // //Grab all the data and creat and apply functions
-function getData(map){
+function getData(map, baseMaps){
     $.ajax("data/track_info.geojson", {
         dataType: "json",
         success: function(response){
 
             var attributes = processData(response);
-            createPropSymbols(response, map, attributes);
+            createPropSymbols(response, map, attributes, baseMaps);
             //createSequenceControls(map, attributes);
-            createLegend(map,attributes)
+            createLegend(map,attributes);
+            resetView(map, baseMaps);
         }
     });
     map.setMaxBounds(map.getBounds());
-    map._layersMinZoom=3
+    map._layersMinZoom=2
 };
 //engages the createMap when the document has finished loading
 $(document).ready(createMap);
