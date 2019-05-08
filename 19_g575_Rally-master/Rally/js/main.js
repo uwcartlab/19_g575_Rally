@@ -67,7 +67,7 @@ function pointToLayer(feature, latlng, attributes, map, baseMaps){
     //var panelContent = "<p><b.Event:</b> " + feature.properties.Surface + "</p";
     var popupContent = "<b>Event:</b> " + feature.properties.Track_Name + "";
     // var name = attribute["Track_Name"];
-
+    
     popupContent += "<br><b>Years active: </b>" + feature.properties[attribute] + " years</br>";
     layer.bindPopup(popupContent, {
         offset: new L.Point(0,-options.radius)
@@ -79,13 +79,16 @@ function pointToLayer(feature, latlng, attributes, map, baseMaps){
         mouseout: function(){
             this.closePopup();
         },
-        click: function(feature){
+        click: function(){
             $("#panel").html(panelContent),
-            map.flyTo(latlng, 12);
+            map.flyTo(latlng, 12),
             map.on('moveend', function(){
-                baseMaps.satellite.addTo(map)
+                // only add satellite imagery if zoomed in on feature
+                if (map.getZoom() == 12) {
+                    baseMaps.satellite.addTo(map)
+                }
                 });
-
+            
         }
     });
     //return the circle marker to the L.geoJson pointToLayer option
@@ -153,12 +156,9 @@ function resetView(map, baseMaps){
         },
 
         _zoomHome: function (e) {
-            map.flyTo([20, 20], 1.5);
-            map.on('moveend', function(){
-                map.removeLayer(baseMaps.satellite)
-                console.log(baseMaps.satellite)
-                baseMaps.satellite.bringToFront()
-                });
+            // 
+            map.flyTo([20, 20], 2);
+            map.removeLayer(baseMaps.satellite)
         },
 
         _createButton: function (html, title, className, container, fn) {
@@ -194,6 +194,26 @@ function resetView(map, baseMaps){
     var zoomHome = new L.Control.zoomHome();
     zoomHome.addTo(map);
 }
+
+function createImage(map){
+    console.log(map)
+    var wrcImage = L.Control.extend({
+        options: {
+            position: 'upperleft'
+        },
+
+        onAdd: function (map) {
+        // create the control container with a particular class name
+        // ** you can add the image to the div as a background image using css
+            var container = L.DomUtil.create('div', 'corner-image');
+            $(container).append("banana")
+            // ... initialize other DOM elements, add listeners, etc.
+            return container;
+        }
+    });
+    map.addControl(new wrcImage());
+};
+
 
 //Create map legend
 function createLegend(map, attributes){
@@ -327,10 +347,12 @@ function getData(map, baseMaps){
             //createSequenceControls(map, attributes);
             createLegend(map,attributes);
             resetView(map, baseMaps);
+            createImage(map);
         }
     });
     map.setMaxBounds(map.getBounds());
     map._layersMinZoom=2
+    
 };
 //engages the createMap when the document has finished loading
 $(document).ready(createMap);
